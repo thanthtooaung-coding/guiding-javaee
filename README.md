@@ -1,4 +1,4 @@
 # Guiding-javaEE
 Guiding JavaEE to my Student
 
-Servlet, Spring MVC, Spring Boot
+Servlet, JSP, Spring MVC, Spring Boot
