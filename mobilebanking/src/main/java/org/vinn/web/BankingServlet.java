@@ -42,31 +42,59 @@ public class BankingServlet extends HttpServlet {
         if (action == null) {
             action = "dashboard";
         }
+
+        // Authentication check for protected actions
+        HttpSession session = request.getSession(false);
+        boolean isLoggedIn = (session != null && session.getAttribute("user") != null);
+
+        // Publicly accessible actions
+        if ("login".equals(action) || "register".equals(action)) {
+            try {
+                if ("login".equals(action)) {
+                    request.getRequestDispatcher("login.jsp").forward(request, response);
+                } else { // register
+                    request.getRequestDispatcher("register.jsp").forward(request, response);
+                }
+            } catch (Exception e) {
+                handleException(response, e);
+            }
+            return;
+        }
+
+        if (!isLoggedIn) {
+            response.sendRedirect("banking?action=login");
+            return;
+        }
+
+        // Actions requiring login
         try {
             switch (action) {
-                case "login":
-                    request.getRequestDispatcher("login.jsp").forward(request, response);
-                    break;
-                case "register":
-                    request.getRequestDispatcher("register.jsp").forward(request, response);
-                    break;
                 case "dashboard":
                     showDashboard(request, response);
                     break;
                 case "transfer":
-                    request.getRequestDispatcher("transfer.jsp").forward(request, response);
+                    showTransferPage(request, response);
+                    break;
+                case "profile":
+                    request.getRequestDispatcher("profile.jsp").forward(request, response);
+                    break;
+                case "createAccount":
+                    request.getRequestDispatcher("create-account.jsp").forward(request, response);
+                    break;
+                case "accountDetails":
+                    showAccountDetails(request, response);
                     break;
                 case "logout":
                     logout(request, response);
                     break;
                 default:
-                    response.sendRedirect("index.jsp");
+                    response.sendRedirect("banking?action=dashboard");
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An error occurred: " + e.getMessage());
+            handleException(response, e);
         }
     }
+
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -87,14 +115,82 @@ public class BankingServlet extends HttpServlet {
                 case "transfer":
                     handleTransfer(request, response);
                     break;
+                case "updateProfile":
+                    handleProfileUpdate(request, response);
+                    break;
+                case "createAccount":
+                    handleCreateAccount(request, response);
+                    break;
                 default:
                     response.sendRedirect("index.jsp");
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An error occurred: " + e.getMessage());
+            handleException(response, e);
         }
     }
+
+    private void handleException(HttpServletResponse response, Exception e) throws IOException {
+        e.printStackTrace();
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An error occurred: " + e.getMessage());
+    }
+
+    private void showTransferPage(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        User user = (User) request.getSession().getAttribute("user");
+        List<Account> accounts = accountDao.findAccountsByUser(user);
+        request.setAttribute("accounts", accounts);
+        request.getRequestDispatcher("transfer.jsp").forward(request, response);
+    }
+
+    private void showAccountDetails(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        String accountNumber = request.getParameter("accountNumber");
+        User user = (User) request.getSession().getAttribute("user");
+
+        Optional<Account> accountOpt = accountDao.findByAccountNumber(accountNumber);
+        if (accountOpt.isPresent() && accountOpt.get().getUser().getId().equals(user.getId())) {
+            Account account = accountOpt.get();
+            List<Transaction> transactions = transactionDao.findTransactionsByAccount(account);
+            request.setAttribute("account", account);
+            request.setAttribute("transactions", transactions);
+            request.getRequestDispatcher("account-details.jsp").forward(request, response);
+        } else {
+            response.sendRedirect("banking?action=dashboard");
+        }
+    }
+
+    private void handleCreateAccount(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        HttpSession session = request.getSession(false);
+        User user = (User) session.getAttribute("user");
+
+        String accountName = request.getParameter("accountName");
+        String accountType = request.getParameter("accountType");
+        BigDecimal initialDeposit = new BigDecimal(request.getParameter("initialDeposit"));
+
+        Account account = new Account();
+        account.setUser(user);
+        account.setAccountName(accountName);
+        account.setAccountType(accountType);
+        account.setBalance(initialDeposit);
+        account.setAccountNumber(UUID.randomUUID().toString().substring(0, 10));
+        accountDao.saveAccount(account);
+
+        response.sendRedirect("banking?action=dashboard");
+    }
+
+    private void handleProfileUpdate(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        User user = (User) session.getAttribute("user");
+
+        user.setFirstName(request.getParameter("firstName"));
+        user.setLastName(request.getParameter("lastName"));
+        user.setEmail(request.getParameter("email"));
+
+        userDao.updateUser(user);
+        session.setAttribute("user", user);
+
+        request.setAttribute("message", "Profile updated successfully!");
+        request.getRequestDispatcher("profile.jsp").forward(request, response);
+    }
+
 
     private void handleRegistration(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         String username = request.getParameter("username");
@@ -111,11 +207,13 @@ public class BankingServlet extends HttpServlet {
         user.setPassword(password); // Should be hashed
         userDao.saveUser(user);
 
-
+        // Create a default checking account
         Account account = new Account();
         account.setUser(user);
         account.setBalance(new BigDecimal("1000.00")); // Initial deposit
         account.setAccountNumber(UUID.randomUUID().toString().substring(0, 10));
+        account.setAccountName("Primary Checking");
+        account.setAccountType("Checking");
         accountDao.saveAccount(account);
 
         response.sendRedirect("banking?action=login");
@@ -130,7 +228,7 @@ public class BankingServlet extends HttpServlet {
         if (userOptional.isPresent() && userOptional.get().getPassword().equals(password)) {
             HttpSession session = request.getSession();
             session.setAttribute("user", userOptional.get());
-            session.setAttribute("account", userOptional.get().getAccounts().iterator().next());
+            // No longer setting single account in session
             response.sendRedirect("banking?action=dashboard");
         } else {
             request.setAttribute("error", "Invalid username or password.");
@@ -139,48 +237,60 @@ public class BankingServlet extends HttpServlet {
     }
 
     private void showDashboard(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("user") == null) {
-            response.sendRedirect("index.jsp");
-            return;
-        }
-
-        Account account = (Account) session.getAttribute("account");
-        if (account != null) {
-            List<Transaction> transactions = transactionDao.findTransactionsByAccount(account);
-            request.setAttribute("transactions", transactions);
-        }
+        User user = (User) request.getSession().getAttribute("user");
+        List<Account> accounts = accountDao.findAccountsByUser(user);
+        request.setAttribute("accounts", accounts);
         request.getRequestDispatcher("dashboard.jsp").forward(request, response);
     }
 
     private void handleTransfer(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("user") == null) {
-            response.sendRedirect("index.jsp");
-            return;
-        }
-
-        Account sourceAccount = (Account) session.getAttribute("account");
+        String sourceAccountNumber = request.getParameter("sourceAccountNumber");
         String targetAccountNumber = request.getParameter("targetAccountNumber");
         BigDecimal amount = new BigDecimal(request.getParameter("amount"));
 
-        Optional<Account> targetAccountOptional = accountDao.findByAccountNumber(targetAccountNumber);
+        Optional<Account> sourceAccountOpt = accountDao.findByAccountNumber(sourceAccountNumber);
+        Optional<Account> targetAccountOpt = accountDao.findByAccountNumber(targetAccountNumber);
 
-        if (!targetAccountOptional.isPresent()) {
+        User user = (User) request.getSession().getAttribute("user");
+        List<Account> userAccounts = accountDao.findAccountsByUser(user);
+        request.setAttribute("accounts", userAccounts);
+
+
+        if (!sourceAccountOpt.isPresent()) {
+            request.setAttribute("error", "Source account not found.");
+            request.getRequestDispatcher("transfer.jsp").forward(request, response);
+            return;
+        }
+
+        // Security check: Ensure the source account belongs to the logged-in user
+        if (sourceAccountOpt.get().getUser().getId() != user.getId()){
+            request.setAttribute("error", "Invalid source account.");
+            request.getRequestDispatcher("transfer.jsp").forward(request, response);
+            return;
+        }
+
+
+        if (!targetAccountOpt.isPresent()) {
             request.setAttribute("error", "Target account not found.");
             request.getRequestDispatcher("transfer.jsp").forward(request, response);
             return;
         }
 
-        Account targetAccount = targetAccountOptional.get();
+        if (sourceAccountNumber.equals(targetAccountNumber)) {
+            request.setAttribute("error", "You cannot transfer money to the same account.");
+            request.getRequestDispatcher("transfer.jsp").forward(request, response);
+            return;
+        }
 
+        Account sourceAccount = sourceAccountOpt.get();
         if (sourceAccount.getBalance().compareTo(amount) < 0) {
             request.setAttribute("error", "Insufficient balance.");
             request.getRequestDispatcher("transfer.jsp").forward(request, response);
             return;
         }
 
-        // Perform transaction
+        Account targetAccount = targetAccountOpt.get();
+
         sourceAccount.setBalance(sourceAccount.getBalance().subtract(amount));
         targetAccount.setBalance(targetAccount.getBalance().add(amount));
 

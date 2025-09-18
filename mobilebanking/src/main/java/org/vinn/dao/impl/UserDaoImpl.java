@@ -28,12 +28,27 @@ public class UserDaoImpl implements UserDao {
     public Optional<User> findByUsername(String username) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             User user = session.createQuery("from User where username = :username", User.class)
-                               .setParameter("username", username)
-                               .uniqueResult();
+                    .setParameter("username", username)
+                    .uniqueResult();
             return Optional.ofNullable(user);
         } catch (Exception e) {
             e.printStackTrace();
             return Optional.empty();
+        }
+    }
+
+    @Override
+    public void updateUser(User user) {
+        Transaction transaction = null;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
+            session.update(user);
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
         }
     }
 }

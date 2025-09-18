@@ -14,6 +14,9 @@ public class Account implements Serializable {
     private Long id;
     private String accountNumber;
     private BigDecimal balance;
+    private String accountType; // e.g., "Checking", "Savings"
+    private String accountName; // e.g., "My Main Account"
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -48,6 +51,22 @@ public class Account implements Serializable {
 
     public void setBalance(BigDecimal balance) {
         this.balance = balance;
+    }
+
+    public String getAccountType() {
+        return accountType;
+    }
+
+    public void setAccountType(String accountType) {
+        this.accountType = accountType;
+    }
+
+    public String getAccountName() {
+        return accountName;
+    }
+
+    public void setAccountName(String accountName) {
+        this.accountName = accountName;
     }
 
     public User getUser() {

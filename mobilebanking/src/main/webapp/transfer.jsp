@@ -11,10 +11,18 @@
 </c:if>
 <form action="banking" method="post">
   <input type="hidden" name="action" value="transfer">
-  Target Account Number: <input type="text" name="targetAccountNumber"><br/>
-  Amount: <input type="text" name="amount"><br/>
+  From Account:
+  <select name="sourceAccountNumber" required>
+    <c:forEach var="acc" items="${accounts}">
+      <option value="${acc.accountNumber}">${acc.accountName} (${acc.accountType}) - Balance: $${acc.balance}</option>
+    </c:forEach>
+  </select>
+  <br/><br/>
+  Target Account Number: <input type="text" name="targetAccountNumber" required><br/><br/>
+  Amount: <input type="text" name="amount" required><br/><br/>
   <input type="submit" value="Transfer">
 </form>
+<br/>
 <a href="banking?action=dashboard">Back to Dashboard</a>
 </body>
 </html>

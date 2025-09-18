@@ -5,6 +5,10 @@ import org.hibernate.Transaction;
 import org.vinn.config.HibernateUtil;
 import org.vinn.dao.AccountDao;
 import org.vinn.model.Account;
+import org.vinn.model.User;
+
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 public class AccountDaoImpl implements AccountDao {
@@ -49,6 +53,18 @@ public class AccountDaoImpl implements AccountDao {
                 transaction.rollback();
             }
             e.printStackTrace();
+        }
+    }
+
+    @Override
+    public List<Account> findAccountsByUser(User user) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery("from Account where user = :user", Account.class)
+                    .setParameter("user", user)
+                    .list();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Collections.emptyList();
         }
     }
 }

@@ -5,54 +5,40 @@
     <title>Dashboard</title>
 </head>
 <body>
-<h1>Welcome, ${user.username}!</h1>
-<h2>Account Details</h2>
-<p>Account Number: ${account.accountNumber}</p>
-<p>Current Balance: <span style="font-weight: bold; color: green;">$${account.balance}</span></p>
+<h1>Welcome, ${not empty user.firstName ? user.firstName : user.username}!</h1>
 
-<a href="banking?action=transfer">Make a Transfer</a> | <a href="banking?action=logout">Logout</a>
+<a href="banking?action=transfer">Make a Transfer</a> |
+<a href="banking?action=createAccount">Open New Account</a> |
+<a href="banking?action=profile">My Profile</a> |
+<a href="banking?action=logout">Logout</a>
 
-<h2>Recent Transactions</h2>
-<c:if test="${not empty transactions}">
+<h2>Your Accounts</h2>
+<c:if test="${not empty accounts}">
     <table border="1">
         <thead>
         <tr>
+            <th>Account Name</th>
             <th>Type</th>
-            <th>Account</th>
-            <th>Amount</th>
-            <th>Date</th>
+            <th>Account Number</th>
+            <th>Balance</th>
+            <th>Actions</th>
         </tr>
         </thead>
         <tbody>
-        <c:forEach var="tx" items="${transactions}">
+        <c:forEach var="acc" items="${accounts}">
             <tr>
-                <td>
-                    <c:choose>
-                        <c:when test="${tx.sourceAccount.id == account.id}">
-                            Sent
-                        </c:when>
-                        <c:otherwise>
-                            Received
-                        </c:otherwise>
-                    </c:choose>
-                </td>
-                <td>
-                    <c:if test="${tx.sourceAccount.id == account.id}">
-                        To: ${tx.targetAccount.accountNumber}
-                    </c:if>
-                    <c:if test="${tx.sourceAccount.id != account.id}">
-                        From: ${tx.sourceAccount.accountNumber}
-                    </c:if>
-                </td>
-                <td>$${tx.amount}</td>
-                <td>${tx.transactionDate}</td>
+                <td>${acc.accountName}</td>
+                <td>${acc.accountType}</td>
+                <td>${acc.accountNumber}</td>
+                <td>$${acc.balance}</td>
+                <td><a href="banking?action=accountDetails&accountNumber=${acc.accountNumber}">View Transactions</a></td>
             </tr>
         </c:forEach>
         </tbody>
     </table>
 </c:if>
-<c:if test="${empty transactions}">
-    <p>No transactions found.</p>
+<c:if test="${empty accounts}">
+    <p>You have no accounts. <a href="banking?action=createAccount">Open one now!</a></p>
 </c:if>
 
 </body>
