@@ -2,10 +2,7 @@ package org.vinn.web;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.*;
 import org.vinn.dao.AccountDao;
 import org.vinn.dao.TransactionDao;
 import org.vinn.dao.UserDao;
@@ -38,14 +35,32 @@ public class BankingServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+        HttpSession session = request.getSession(false);
+        boolean isLoggedIn = (session != null && session.getAttribute("user") != null);
+
+        if (!isLoggedIn) {
+            final Cookie[] cookies = request.getCookies();
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    if (cookie.getName().equals("username")) {
+                        final String username = cookie.getValue();
+                        Optional<User> userOptional = userDao.findByUsername(username);
+                        if (userOptional.isPresent()) {
+                            session = request.getSession();
+                            session.setAttribute("user", userOptional.get());
+                            isLoggedIn = true;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
         String action = request.getParameter("action");
         if (action == null) {
             action = "dashboard";
         }
-
-        // Authentication check for protected actions
-        HttpSession session = request.getSession(false);
-        boolean isLoggedIn = (session != null && session.getAttribute("user") != null);
 
         // Publicly accessible actions
         if ("login".equals(action) || "register".equals(action)) {
@@ -222,13 +237,22 @@ public class BankingServlet extends HttpServlet {
     private void handleLogin(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         String username = request.getParameter("username");
         String password = request.getParameter("password");
+        String rememberMe = request.getParameter("rememberMe");
 
         Optional<User> userOptional = userDao.findByUsername(username);
 
         if (userOptional.isPresent() && userOptional.get().getPassword().equals(password)) {
             HttpSession session = request.getSession();
             session.setAttribute("user", userOptional.get());
-            // No longer setting single account in session
+            if ("true".equals(rememberMe)) {
+                final Cookie userCookie = new Cookie("username", username);
+                userCookie.setMaxAge(7 * 24 * 60 * 60); // 7 days (in seconds)
+                response.addCookie(userCookie);
+            }
+
+            Cookie lastLoginCookie = new Cookie("lastLogin", String.valueOf(System.currentTimeMillis()));
+            lastLoginCookie.setMaxAge(365 * 24 * 60 * 60); // 1 year (in seconds)
+            response.addCookie(lastLoginCookie);
             response.sendRedirect("banking?action=dashboard");
         } else {
             request.setAttribute("error", "Invalid username or password.");
@@ -240,6 +264,17 @@ public class BankingServlet extends HttpServlet {
         User user = (User) request.getSession().getAttribute("user");
         List<Account> accounts = accountDao.findAccountsByUser(user);
         request.setAttribute("accounts", accounts);
+
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals("lastLogin")) {
+                    long lastLoginTime = Long.parseLong(cookie.getValue());
+                    request.setAttribute("lastLoginTime", new java.util.Date(lastLoginTime));
+                }
+            }
+        }
+
         request.getRequestDispatcher("dashboard.jsp").forward(request, response);
     }
 
@@ -313,6 +348,9 @@ public class BankingServlet extends HttpServlet {
         if (session != null) {
             session.invalidate();
         }
+        Cookie userCookie = new Cookie("username", null);
+        userCookie.setMaxAge(0);
+        response.addCookie(userCookie);
         response.sendRedirect("index.jsp");
     }
 }

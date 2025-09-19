@@ -7,6 +7,10 @@
 <body>
 <h1>Welcome, ${not empty user.firstName ? user.firstName : user.username}!</h1>
 
+<c:if test="${not empty lastLoginTime}">
+    <p>Your last login was on: ${lastLoginTime}</p>
+</c:if>
+
 <a href="banking?action=transfer">Make a Transfer</a> |
 <a href="banking?action=createAccount">Open New Account</a> |
 <a href="banking?action=profile">My Profile</a> |

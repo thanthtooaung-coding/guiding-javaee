@@ -13,6 +13,7 @@
     <input type="hidden" name="action" value="login">
     Username: <input type="text" name="username"><br/>
     Password: <input type="password" name="password"><br/>
+    <input type="checkbox" name="rememberMe" value="true"> Remember Me<br/><br/>
     <input type="submit" value="Login">
 </form>
 </body>
