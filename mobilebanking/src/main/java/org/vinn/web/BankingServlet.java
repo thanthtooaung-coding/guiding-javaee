@@ -136,12 +136,25 @@ public class BankingServlet extends HttpServlet {
                 case "createAccount":
                     handleCreateAccount(request, response);
                     break;
+                case "changeTheme":
+                    handleChangeTheme(request, response);
+                    break;
                 default:
                     response.sendRedirect("index.jsp");
             }
         } catch (Exception e) {
             handleException(response, e);
         }
+    }
+
+    private void handleChangeTheme(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String theme = request.getParameter("theme");
+        if (theme != null && !theme.isEmpty()) {
+            Cookie themeCookie = new Cookie("theme", theme);
+            themeCookie.setMaxAge(365 * 24 * 60 * 60);
+            response.addCookie(themeCookie);
+        }
+        response.sendRedirect("banking?action=dashboard");
     }
 
     private void handleException(HttpServletResponse response, Exception e) throws IOException {

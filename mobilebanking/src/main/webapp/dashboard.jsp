@@ -3,18 +3,27 @@
 <html>
 <head>
     <title>Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="${empty cookie.theme.value ? 'light' : cookie.theme.value}">
 <h1>Welcome, ${not empty user.firstName ? user.firstName : user.username}!</h1>
 
 <c:if test="${not empty lastLoginTime}">
     <p>Your last login was on: ${lastLoginTime}</p>
 </c:if>
 
-<a href="banking?action=transfer">Make a Transfer</a> |
-<a href="banking?action=createAccount">Open New Account</a> |
-<a href="banking?action=profile">My Profile</a> |
-<a href="banking?action=logout">Logout</a>
+<form action="banking" method="post" style="display: inline;">
+    <input type="hidden" name="action" value="changeTheme">
+    <select name="theme" onchange="this.form.submit()">
+        <option value="light" ${cookie.theme.value == 'light' ? 'selected' : ''}>Light Theme</option>
+        <option value="dark" ${cookie.theme.value == 'dark' ? 'selected' : ''}>Dark Theme</option>
+    </select>
+</form>
+
+<a class="${empty cookie.theme.value ? 'light' : cookie.theme.value}" href="banking?action=transfer">Make a Transfer</a> |
+<a class="${empty cookie.theme.value ? 'light' : cookie.theme.value}" href="banking?action=createAccount">Open New Account</a> |
+<a class="${empty cookie.theme.value ? 'light' : cookie.theme.value}" href="banking?action=profile">My Profile</a> |
+<a class="${empty cookie.theme.value ? 'light' : cookie.theme.value}" href="banking?action=logout">Logout</a>
 
 <h2>Your Accounts</h2>
 <c:if test="${not empty accounts}">
@@ -35,7 +44,7 @@
                 <td>${acc.accountType}</td>
                 <td>${acc.accountNumber}</td>
                 <td>$${acc.balance}</td>
-                <td><a href="banking?action=accountDetails&accountNumber=${acc.accountNumber}">View Transactions</a></td>
+                <td><a class="${empty cookie.theme.value ? 'light' : cookie.theme.value}" href="banking?action=accountDetails&accountNumber=${acc.accountNumber}">View Transactions</a></td>
             </tr>
         </c:forEach>
         </tbody>
