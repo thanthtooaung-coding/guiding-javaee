@@ -31,6 +31,23 @@ public class CategoryDaoImpl implements CategoryDao {
     }
 
     @Override
+    public Category findById(Long id) throws Exception {
+        try(Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.get(Category.class, id);
+        }
+    }
+
+    @Override
+    public void update(Category category) throws Exception {
+        Transaction transaction = null;
+        try(Session session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
+            session.update(category);
+            transaction.commit();
+        }
+    }
+
+    @Override
     public void delete(Long id) throws Exception {
         Transaction transaction = null;
         try(Session session = HibernateUtil.getSessionFactory().openSession()) {

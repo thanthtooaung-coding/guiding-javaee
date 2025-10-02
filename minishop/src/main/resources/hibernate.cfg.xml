@@ -16,6 +16,7 @@
         <property name="hbm2ddl.auto">update</property>
 
         <mapping class="org.vinn.model.Category"/>
+        <mapping class="org.vinn.model.Product"/>
 
     </session-factory>
 </hibernate-configuration>

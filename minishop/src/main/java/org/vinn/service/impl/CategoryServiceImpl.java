@@ -37,8 +37,18 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public void edit(Long id, String name) throws Exception {
+    public CategoryDto retrieveOne(Long id) throws Exception {
+        Category category = categoryDao.findById(id);
+        return CategoryMapper.toDto(category);
+    }
 
+    @Override
+    public void edit(Long id, String name) throws Exception {
+        Category category = categoryDao.findById(id);
+        category.setName(name);
+        categoryDao.update(
+                category
+        );
     }
 
     @Override
