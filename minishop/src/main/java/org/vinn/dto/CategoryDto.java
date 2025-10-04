@@ -16,6 +16,6 @@ public class CategoryDto {
     }
 
     public String getName() {
-        return name;
+        return name; // ""
     }
 }

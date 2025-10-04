@@ -124,12 +124,28 @@ public class MiniShopServlet extends HttpServlet {
                 case "product-create":
                     handleProductCreate(request, response);
                     break;
+                case "product-edit":
+                    handleProductEdit(request, response);
+                    break;
                 default:
                     break;
             }
         } catch (Exception e) {
             System.out.println("Exception: " + e.getMessage());
         }
+    }
+
+    private void handleProductEdit(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        ProductDto productDto = new ProductDto();
+        productDto.setId(Long.valueOf(request.getParameter("id")));
+        productDto.setName(request.getParameter("name"));
+        productDto.setPrice(BigDecimal.valueOf(Double.parseDouble(request.getParameter("price"))));
+        productDto.setDescription(request.getParameter("description"));
+        productDto.setImageUrl(request.getParameter("imageUrl"));
+
+        productService.edit(productDto);
+
+        response.sendRedirect("mini-shop?action=product-list");
     }
 
     private void handleProductCreate(HttpServletRequest request, HttpServletResponse response) throws Exception {
@@ -139,6 +155,7 @@ public class MiniShopServlet extends HttpServlet {
         String imageUrl = request.getParameter("imageUrl");
         BigDecimal price = BigDecimal.valueOf(Double.parseDouble(request.getParameter("price")));
 
+        System.out.println("Category Id: " + categoryId);
         productService.create(
                 new ProductDto().initialize(
                         name,

@@ -16,6 +16,12 @@ public class Category {
 
     private LocalDateTime updatedAt;
 
+    @Column(name = "created_by_user_id")
+    private Long createdBy;
+
+    @Column(name = "updated_by_user_id")
+    private Long updatedBy;
+
     public Category() {}
 
     public Category initialize(String name) {
@@ -38,6 +44,14 @@ public class Category {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public Long getCreatedBy() {
+        return createdBy;
+    }
+
+    public Long getUpdatedBy() {
+        return updatedBy;
     }
 
     public void setId(Long id) {

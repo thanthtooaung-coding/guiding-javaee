@@ -24,6 +24,12 @@ public class Product {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    @Column(name = "created_by_user_id")
+    private Long createdBy;
+
+    @Column(name = "updated_by_user_id")
+    private Long updatedBy;
+
     public Long getId() {
         return id;
     }
@@ -54,6 +60,19 @@ public class Product {
 
     public Category getCategory() {
         return category;
+    }
+
+    public Long getCreatedBy() {
+        return createdBy;
+    }
+    public void setCreatedBy(Long createdBy) {
+        this.createdBy = createdBy;
+    }
+    public Long getUpdatedBy() {
+        return updatedBy;
+    }
+    public void setUpdatedBy(Long updatedBy) {
+        this.updatedBy = updatedBy;
     }
 
     @ManyToOne
@@ -94,14 +113,15 @@ public class Product {
         this.category = category;
     }
 
-    public Product initialize(ProductDto productDto) {
+    public Product initialize(ProductDto productDto, Category category) {
         this.id = productDto.getId();
         this.name = productDto.getName();
         this.price = productDto.getPrice();
         this.description = productDto.getDescription();
         this.imageUrl = productDto.getImageUrl();
-        this.category.setId(productDto.getCategory().getId());
-        this.category.setName(productDto.getCategory().getName());
+//        this.category.setId(productDto.getCategory().getId());
+//        this.category.setName(productDto.getCategory().getName());
+        this.category = category;
         return this;
     }
 
