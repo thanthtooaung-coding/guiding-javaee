@@ -113,7 +113,7 @@ public class Product {
         this.category = category;
     }
 
-    public Product initialize(ProductDto productDto, Category category) {
+    public Product initialize(ProductDto productDto, Category category, Long createdBy) {
         this.id = productDto.getId();
         this.name = productDto.getName();
         this.price = productDto.getPrice();
@@ -122,6 +122,8 @@ public class Product {
 //        this.category.setId(productDto.getCategory().getId());
 //        this.category.setName(productDto.getCategory().getName());
         this.category = category;
+        this.createdAt = LocalDateTime.now();
+        this.createdBy = createdBy;
         return this;
     }
 

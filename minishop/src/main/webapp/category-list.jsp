@@ -14,6 +14,7 @@
         <tr>
             <th>ID</th>
             <th>Name</th>
+            <th>Created By Username</th>
             <th>Action</th>
         </tr>
         </thead>
@@ -22,6 +23,7 @@
             <tr>
                 <td>${category.id}</td>
                 <td>${category.name}</td>
+                <td>${category.createdByUsername}</td>
                 <td><a href="mini-shop?action=category-edit&id=${category.id}">Edit</a> | <a href="mini-shop?action=category-delete&id=${category.id}">Delete</a></td>
             </tr>
         </c:forEach>

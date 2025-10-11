@@ -1,7 +1,9 @@
 package org.vinn.service.impl;
 
 import org.vinn.dao.CategoryDao;
+import org.vinn.dao.UserDao;
 import org.vinn.dao.impl.CategoryDaoImpl;
+import org.vinn.dao.impl.UserDaoImpl;
 import org.vinn.dto.CategoryDto;
 import org.vinn.mapper.CategoryMapper;
 import org.vinn.model.Category;
@@ -13,27 +15,37 @@ import java.util.List;
 public class CategoryServiceImpl implements CategoryService {
 
     private CategoryDao categoryDao;
+    private UserDao userDao;
 
     public CategoryServiceImpl() {
         this.categoryDao = new CategoryDaoImpl();
+        this.userDao = new UserDaoImpl();
     }
 
     @Override
-    public void create(String name) throws Exception {
+    public void create(String name, Long createdBy) throws Exception {
         categoryDao.save(
-                new Category().initialize(name)
+                new Category().initialize(name, createdBy)
         );
     }
 
     @Override
     public List<CategoryDto> retrieveAll() throws Exception {
         List<Category> categories = categoryDao.findAll();
-        /*
-        List<CategoryDto> categoryDtoList = new ArrayList<>();
-        for (Category category : categories) {
-            categoryDtoList.add(CategoryMapper.toDto(category));
-        }*/
-        return categories.stream().map(CategoryMapper::toDto).toList();
+
+        System.out.println("Pass 1");
+        List<CategoryDto> categoryDtoList = categories.stream().map(CategoryMapper::toDto).toList();
+        System.out.println("Pass 2");
+        for (CategoryDto categoryDto : categoryDtoList) {
+            System.out.println("Pass 3");
+            categoryDto.setCreatedByUsername(
+                    userDao.findById(
+                        categoryDto.getCreatedBy()
+                    )
+                    .getUsername()
+            );
+        }
+        return categoryDtoList;
     }
 
     @Override

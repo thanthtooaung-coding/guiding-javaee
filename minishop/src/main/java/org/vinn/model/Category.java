@@ -24,9 +24,10 @@ public class Category {
 
     public Category() {}
 
-    public Category initialize(String name) {
+    public Category initialize(String name, Long createdBy) {
         this.name = name;
         this.createdAt = LocalDateTime.now();
+        this.createdBy = createdBy;
         return this;
     }
 

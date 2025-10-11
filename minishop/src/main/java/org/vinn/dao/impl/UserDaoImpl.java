@@ -30,7 +30,10 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public User findById(Long id) throws Exception {
+        System.out.println("Pass 4");
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            System.out.println("Pass 5");
+            System.out.println("User Id: " + id);
             return session
                     .get(User.class, id);
         }

@@ -20,7 +20,7 @@ public class ProductServiceImpl implements ProductService {
         );
 
         productDao.save(
-                new Product().initialize(productDto, category)
+                new Product().initialize(productDto, category, 1L)
         );
     }
 

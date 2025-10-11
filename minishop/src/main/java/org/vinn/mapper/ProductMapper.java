@@ -15,7 +15,8 @@ public class ProductMapper {
                 product.getImageUrl(),
                 new CategoryDto(
                         product.getCategory().getId(),
-                        product.getCategory().getName()
+                        product.getCategory().getName(),
+                        product.getCategory().getCreatedBy()
                 )
         );
     }
