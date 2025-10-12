@@ -16,6 +16,7 @@
             <th>Name</th>
             <th>Price</th>
             <th>Description</th>
+            <th>Image URL</th>
             <th>Action</th>
         </tr>
         </thead>

@@ -2,6 +2,8 @@ package org.vinn.service.impl;
 
 import org.vinn.dao.CategoryDao;
 import org.vinn.dao.ProductDao;
+import org.vinn.dao.impl.CategoryDaoImpl;
+import org.vinn.dao.impl.ProductDaoImpl;
 import org.vinn.dto.ProductDto;
 import org.vinn.mapper.ProductMapper;
 import org.vinn.model.Category;
@@ -13,6 +15,12 @@ import java.util.List;
 public class ProductServiceImpl implements ProductService {
     ProductDao productDao;
     CategoryDao categoryDao;
+
+    public ProductServiceImpl() {
+        this.productDao = new ProductDaoImpl();
+        this.categoryDao = new CategoryDaoImpl();
+    }
+
     @Override
     public void create(ProductDto productDto) throws Exception {
         Category category = categoryDao.findById(

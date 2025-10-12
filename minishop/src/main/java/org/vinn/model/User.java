@@ -13,15 +13,19 @@ public class User {
     private String username;
     private String password;
 
+    @Column(name = "user_type_enum")
+    private int userTypeEnum;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     public User(){}
 
-    public User initialize(String username, String password){
+    public User initialize(String username, String password, int userType){
         this.username = username;
         this.password = password;
         this.createdAt = LocalDateTime.now();
+        this.userTypeEnum = userType;
         return this;
     }
 
@@ -59,5 +63,9 @@ public class User {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public int getUserTypeEnum() {
+        return userTypeEnum;
     }
 }

@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.vinn.dto.CategoryDto;
 import org.vinn.dto.ProductDto;
 import org.vinn.model.User;
+import org.vinn.model.UserType;
 import org.vinn.service.CategoryService;
 import org.vinn.service.ProductService;
 import org.vinn.service.UserService;
@@ -87,6 +88,10 @@ public class MiniShopServlet extends HttpServlet {
             for (Cookie cookie : cookies) {
                 if (cookie.getName().equals("minishop-username")) {
                     request.setAttribute("username", cookie.getValue());
+                }
+                if (cookie.getName().equals("minishop-usertype")) {
+                    System.out.println("User Type: " + cookie.getValue());
+                    request.setAttribute("usertype", cookie.getValue());
                 }
             }
         }
@@ -177,6 +182,25 @@ public class MiniShopServlet extends HttpServlet {
     }
 
     private void handleCategoryCreate(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        /*Cookie[] cookies = request.getCookies();
+        String username = null;
+        for (Cookie cookie : cookies) {
+            if (cookie.getName().equals("minishop-username")) {
+                username = cookie.getValue();
+            }
+        }
+        if (username == null) {
+            response.sendRedirect("mini-shop?action=login");
+        }
+        User user = userService.findByUsername(username)
+                .orElseThrow(() -> new Exception("User not found"));*/
+        categoryService.create(
+                request.getParameter("name"),
+                retrieveUserIdByCookie(request, response)
+        );
+    }
+
+    private Long retrieveUserIdByCookie(HttpServletRequest request, HttpServletResponse response) throws Exception {
         Cookie[] cookies = request.getCookies();
         String username = null;
         for (Cookie cookie : cookies) {
@@ -189,17 +213,16 @@ public class MiniShopServlet extends HttpServlet {
         }
         User user = userService.findByUsername(username)
                 .orElseThrow(() -> new Exception("User not found"));
-        categoryService.create(
-                request.getParameter("name"), user.getId()
-        );
+        return user.getId();
     }
 
     private void handleRegistration(HttpServletRequest request, HttpServletResponse response) throws Exception {
         String username = request.getParameter("username");
         String password = request.getParameter("password");
+        int userType = Integer.parseInt(request.getParameter("userType"));
         System.out.println("Registering user: " + username);
         System.out.println("Password: " + password);
-        userService.create(username, password);
+        userService.create(username, password, userType);
         response.sendRedirect("mini-shop?action=login");
     }
 
@@ -220,6 +243,15 @@ public class MiniShopServlet extends HttpServlet {
             final Cookie userCookie = new Cookie("minishop-username", username);
             userCookie.setMaxAge(60 * 60 * 24 * 365);
             response.addCookie(userCookie);
+
+            UserType usertype = UserType.fromId(userOptional.get().getUserTypeEnum());
+            if (usertype != null) {
+                System.out.println(usertype.getName());
+                String userTypeName = usertype.getName();
+                final Cookie userTypeCookie = new Cookie("minishop-usertype", userTypeName);
+                userTypeCookie.setMaxAge(60 * 60 * 24 * 365);
+                response.addCookie(userTypeCookie);
+            }
 
             response.sendRedirect("mini-shop?action=dashboard");
         } else {

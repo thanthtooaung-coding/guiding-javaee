@@ -21,9 +21,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void create(String username, String password) throws Exception {
+    public void create(String username, String password, int userType) throws Exception {
         userDao.save(
-                new User().initialize(username, password)
+                new User().initialize(username, password, userType)
         );
     }
 
