@@ -6,15 +6,19 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.vinn.config.DatabaseConfig;
+import org.vinn.dao.impl.ShoppingCartDaoImpl;
 import org.vinn.dto.CategoryDto;
 import org.vinn.dto.ProductDto;
 import org.vinn.model.User;
 import org.vinn.model.UserType;
 import org.vinn.service.CategoryService;
 import org.vinn.service.ProductService;
+import org.vinn.service.ShoppingCartService;
 import org.vinn.service.UserService;
 import org.vinn.service.impl.ProductServiceImpl;
 import org.vinn.service.impl.CategoryServiceImpl;
+import org.vinn.service.impl.ShoppingCartServiceImpl;
 import org.vinn.service.impl.UserServiceImpl;
 
 import java.io.IOException;
@@ -27,12 +31,16 @@ public class MiniShopServlet extends HttpServlet {
     private CategoryService categoryService;
     private ProductService productService;
     private UserService userService;
+    private ShoppingCartService shoppingCartService;
 
     public void init() {
 
         categoryService = new CategoryServiceImpl();
         productService = new ProductServiceImpl();
         userService = new UserServiceImpl();
+        shoppingCartService = new ShoppingCartServiceImpl(
+                new ShoppingCartDaoImpl(DatabaseConfig.getDataSource())
+        );
     }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
@@ -98,6 +106,34 @@ public class MiniShopServlet extends HttpServlet {
         request.getRequestDispatcher("dashboard.jsp").forward(request, response);
     }
 
+    private String retrieveUsernameByCookie(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        Cookie[] cookies = request.getCookies();
+        String username = null;
+        for (Cookie cookie : cookies) {
+            if (cookie.getName().equals("minishop-username")) {
+                username = cookie.getValue();
+            }
+        }
+        if (username == null) {
+            response.sendRedirect("mini-shop?action=login");
+        }
+        return username;
+    }
+
+    private String retrieveUserTypeByCookie(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        Cookie[] cookies = request.getCookies();
+        String userType = null;
+        for (Cookie cookie : cookies) {
+            if (cookie.getName().equals("minishop-usertype")) {
+                userType = cookie.getValue();
+            }
+        }
+        if (userType == null) {
+            response.sendRedirect("mini-shop?action=login");
+        }
+        return userType;
+    }
+
     private void showRegisterFrom(HttpServletRequest request, HttpServletResponse response)throws Exception {
         request.getRequestDispatcher("register.jsp").forward(request,response);
     }
@@ -129,6 +165,8 @@ public class MiniShopServlet extends HttpServlet {
 
     private void showProductList(HttpServletRequest request, HttpServletResponse response) throws Exception {
         request.setAttribute("products", productService.retrieveAll());
+        System.out.println("User Type: " + retrieveUserTypeByCookie(request, response));
+        request.setAttribute("usertype", retrieveUserTypeByCookie(request, response));
         request.getRequestDispatcher("product-list.jsp").forward(request, response);
     }
 
@@ -173,12 +211,23 @@ public class MiniShopServlet extends HttpServlet {
                 case "product-edit":
                     handleProductEdit(request, response);
                     break;
+                case "product-add-to-cart":
+                    handleProductAddToCart(request, response);
+                    break;
                 default:
                     break;
             }
         } catch (Exception e) {
             System.out.println("Exception: " + e.getMessage());
         }
+    }
+
+    private void handleProductAddToCart(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        final Long productId  = Long.valueOf(request.getParameter("id"));
+        final Long userId = retrieveUserIdByCookie(request, response);
+        final Integer quantity = Integer.valueOf(request.getParameter("quantity"));
+        shoppingCartService.add(userId, productId, quantity);
+        response.sendRedirect("mini-shop?action=product-list");
     }
 
     private void handleCategoryCreate(HttpServletRequest request, HttpServletResponse response) throws Exception {

@@ -28,14 +28,26 @@
                 <td>${product.price}</td>
                 <td>${product.description}</td>
                 <td>${product.imageUrl}</td>
-                <td><a href="mini-shop?action=product-edit&id=${product.id}">Edit</a>
-                    |
-                    <form action="mini-shop" method="post">
-                        <input type="hidden" name="action" value="product-delete">
-                        <input type="hidden" name="id" value="${product.id}">
-                        <input type="submit" value="Delete">
-                    </form>
-                </td>
+                <c:if test="${usertype == 'Admin'}">
+                    <td><a href="mini-shop?action=product-edit&id=${product.id}">Edit</a>
+                        |
+                        <form action="mini-shop" method="post">
+                            <input type="hidden" name="action" value="product-delete">
+                            <input type="hidden" name="id" value="${product.id}">
+                            <input type="submit" value="Delete">
+                        </form>
+                    </td>
+                </c:if>
+                <c:if test="${usertype == 'Customer'}">
+                    <td>
+                        <form action="mini-shop" method="post">
+                            <input type="hidden" name="action" value="product-add-to-cart">
+                            <input type="hidden" name="id" value="${product.id}">
+                            <input type="number" name="quantity" value="1" placeholder="Quantity">
+                            <input type="submit" value="Add to Cart">
+                        </form>
+                    </td>
+                </c:if>
             </tr>
         </c:forEach>
         </tbody>

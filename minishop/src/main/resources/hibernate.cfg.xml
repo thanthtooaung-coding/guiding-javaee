@@ -11,13 +11,15 @@
 
         <property name="dialect">org.hibernate.dialect.MySQL8Dialect</property>
 
-        <property name="show_sql">true</property>
+        <property name="show_sql">false</property>
 
         <property name="hbm2ddl.auto">update</property>
 
         <mapping class="org.vinn.model.Category"/>
         <mapping class="org.vinn.model.Product"/>
         <mapping class="org.vinn.model.User"/>
+        <mapping class="org.vinn.model.ShoppingCart"/>
+        <mapping class="org.vinn.model.OrderHistory"/>
 
     </session-factory>
 </hibernate-configuration>
