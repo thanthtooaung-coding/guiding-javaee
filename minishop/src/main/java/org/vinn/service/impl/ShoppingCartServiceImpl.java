@@ -13,7 +13,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     private final ShoppingCartDao shoppingCartDao;
 
     public ShoppingCartServiceImpl(ShoppingCartDao shoppingCartDao) {
-        this.shoppingCartDao = new ShoppingCartDaoImpl(DatabaseConfig.getDataSource());;
+        this.shoppingCartDao = new ShoppingCartDaoImpl(DatabaseConfig.getDataSource());
     }
 
     @Override
